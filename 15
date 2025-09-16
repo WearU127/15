@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WearU - ระบบช่วยเลือกเสื้อผ้า</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Itim&display=swap" rel="stylesheet">
+
+    <!-- Custom Styles -->
+    <style>
+        :root {
+            --primary-color: #ffffff;
+            --secondary-color: #f0f8ff;
+            --text-color: #333;
+            --accent-color: #5c9ded;
+            --light-pink: #f7c8e0;
+        }
+
+        body {
+            font-family: 'Inter', 'Itim', sans-serif;
+            margin: 0;
+            padding: 0;
+            color: var(--text-color);
+        }
+
+        .fullscreen-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background-image: url('https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=2071&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            z-index: -2;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: -1;
+        }
+
+        .content-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+            color: var(--primary-color);
+        }
+
+        #landing-page h1 {
+            font-size: 5rem;
+            font-weight: 700;
+            letter-spacing: 0.2rem;
+        }
+
+        #landing-page p {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .main-btn {
+            padding: 1rem 3rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            background-color: var(--accent-color);
+            border: none;
+            border-radius: 50px;
+            color: var(--primary-color);
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .main-btn:hover {
+            background-color: #4a8ad9;
+        }
+
+        .auth-card {
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 450px;
+        }
+        
+        .auth-card h3 {
+            margin-bottom: 2rem;
+            font-weight: 700;
+        }
+
+        .form-control {
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: var(--primary-color);
+            border-radius: 10px;
+            padding: 0.8rem 1rem;
+        }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .form-control:focus {
+            background-color: rgba(255, 255, 255, 0.3);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.25rem rgba(92, 157, 237, 0.5);
+            color: var(--primary-color);
+        }
+
+        .auth-card a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        .app-wrapper {
+            background-color: var(--secondary-color);
+            min-height: 100vh;
+            padding-bottom: 70px; /* Space for bottom nav */
+        }
+        
+        #ai-stylist-section .card, #search-history-page .card, #profile-page .card, #notifications-page .card {
+            background-color: var(--primary-color);
+        }
+
+        .page-header {
+            background-color: var(--light-pink);
+            color: var(--text-color);
+            border-bottom: none;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px; /* Reduced height */
+            background-color: var(--light-pink);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 0.7rem; /* Smaller font */
+        }
+        .nav-item i {
+            font-size: 1.3rem; /* Smaller icon */
+        }
+        .nav-item.active {
+            color: var(--accent-color);
+        }
+        
+        #profile-pic {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--primary-color);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+        
+        #display-name {
+            color: var(--text-color);
+        }
+        
+        #edit-name-container .form-control, #search-history-page .form-control {
+            color: var(--text-color) !important;
+            background-color: #f8f9fa !important;
+            border-color: #dee2e6 !important;
+        }
+        
+        #search-history-page .form-control::placeholder {
+            color: #6c757d;
+        }
+
+        #search-history-page .search-tag {
+            display: inline-block;
+            background-color: #e9ecef;
+            border: 1px solid #dee2e6;
+            border-radius: 50px;
+            padding: 5px 10px 5px 15px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        #search-history-page .search-tag .delete-tag {
+            margin-left: 10px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* Hide sections by default */
+        #auth-container, #app-wrapper, #signup-form, #search-history-page, #profile-page, #notifications-page {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="fullscreen-bg"></div>
+    <div class="overlay"></div>
+
+    <!-- Landing Page -->
+    <div id="landing-page" class="content-container">
+        <div>
+            <h1>WEARU</h1>
+            <p>ให้เราช่วยคุณเลือกเสื้อผ้าที่เหมาะกับคุณ</p>
+            <button id="start-btn" class="main-btn">START</button>
+        </div>
+    </div>
+
+    <!-- Authentication Container -->
+    <div id="auth-container" class="content-container">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <!-- Login Form -->
+                    <div id="login-form">
+                        <div class="auth-card">
+                            <h3>LOGIN</h3>
+                            <form id="login-form-fields">
+                                <div class="mb-3"><input type="email" class="form-control" id="login-email" placeholder="Email" required></div>
+                                <div class="mb-4"><input type="password" class="form-control" id="login-password" placeholder="Password" required></div>
+                                <div class="d-grid mb-3"><button type="submit" class="main-btn">LOGIN</button></div>
+                            </form>
+                            <p class="text-center mt-3">ยังไม่มีบัญชี? <a href="#" id="show-signup">สมัครสมาชิก</a></p>
+                        </div>
+                    </div>
+
+                    <!-- Signup Form -->
+                    <div id="signup-form">
+                         <div class="auth-card">
+                            <h3>SIGN UP</h3>
+                            <form id="signup-form-fields">
+                                <div class="mb-3"><input type="email" class="form-control" id="signup-email" placeholder="Email" required></div>
+                                <div class="mb-4"><input type="password" class="form-control" id="signup-password" placeholder="Password (อย่างน้อย 6 ตัวอักษร)" required></div>
+                                <div class="d-grid mb-3"><button type="submit" class="main-btn">SIGN UP</button></div>
+                            </form>
+                            <p class="text-center mt-3">มีบัญชีแล้ว? <a href="#" id="show-login">เข้าสู่ระบบ</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Wrapper (after login) -->
+    <div id="app-wrapper">
+        <div class="container pt-4">
+             <div class="d-flex justify-content-between align-items-center mb-4">
+                <span id="welcome-message" class="text-muted"></span>
+                <button id="logout-btn" class="btn btn-outline-danger">ออกจากระบบ</button>
+            </div>
+            
+            <!-- Stylist Page -->
+            <div id="stylist-page">
+                <div id="ai-stylist-section" class="card mb-4">
+                    <div class="card-header page-header pt-3">
+                        <h4 class="text-center fw-bold">สไตลิสต์ส่วนตัวของคุณ!</h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <form id="stylist-form">
+                            <div class="row g-3 align-items-end">
+                                 <div class="col-md-3"><label for="user-gender" class="form-label">เพศ</label><select id="user-gender" class="form-select" required><option selected disabled value="">-- เลือกเพศ --</option><option value="หญิง">หญิง</option><option value="ชาย">ชาย</option></select></div>
+                                <div class="col-md-3"><label for="user-shape" class="form-label">รูปร่างของคุณ</label><select id="user-shape" class="form-select" required><option selected disabled value="">-- กรุณาเลือกเพศก่อน --</option></select></div>
+                                <div class="col-md-3"><label for="user-age" class="form-label">ช่วงวัยของคุณ</label><select id="user-age" class="form-select" required><option selected disabled value="">-- เลือกช่วงวัย --</option><option value="วัยรุ่น">วัยรุ่น (13-19)</option><option value="วัยทำงานตอนต้น">วัยทำงานตอนต้น (20-29)</option><option value="วัยทำงาน">วัยทำงาน (30-45)</option><option value="วัยผู้ใหญ่">วัยผู้ใหญ่ (46+)</option></select></div>
+                                <div class="col-md-3"><label for="clothing-type" class="form-label">เสื้อผ้าที่สนใจ</label><select id="clothing-type" class="form-select" required><option selected disabled value="">-- เลือกประเภท --</option><optgroup label="สำหรับผู้หญิง"><option value="เดรสรัดรูป">เดรสรัดรูป</option><option value="กระโปรงทรงเอ">กระโปรงทรงเอ</option><option value="เสื้อเปิดไหล่">เสื้อเปิดไหล่</option></optgroup><optgroup label="สำหรับทุกเพศ"><option value="เสื้อยืด">เสื้อยืด</option><option value="เสื้อเชิ้ต">เสื้อเชิ้ต</option><option value="กางเกงยีนส์">กางเกงยีนส์</option><option value="กางเกงเอวสูง">กางเกงเอวสูง</option></optgroup><optgroup label="สำหรับผู้ชาย"><option value="เสื้อโปโล">เสื้อโปโล</option><option value="กางเกงชิโน่">กางเกงชิโน่</option></optgroup><option value="อื่นๆ">อื่นๆ...</option></select></div>
+                                <div class="col-12 mt-3" id="other-clothing-container" style="display: none;"><label for="other-clothing-input" class="form-label">โปรดระบุเสื้อผ้าที่สนใจ</label><input type="text" id="other-clothing-input" class="form-control text-dark" placeholder="เช่น เสื้อเชิ้ตฮาวาย, กางเกงคาร์โก้"></div>
+                                <div class="col-12 text-center"><button type="submit" class="main-btn mt-3">SUBMIT</button></div>
+                            </div>
+                        </form>
+                        <div id="stylist-result" class="mt-4" style="display: none;"></div>
+                        <div id="additional-results" class="mt-4"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search History Page -->
+            <div id="search-history-page">
+                <div class="page-header text-center p-3"><h4 class="fw-bold m-0">ค้นหา</h4></div>
+                <div class="bg-white p-3">
+                    <div class="input-group mb-3">
+                        <input type="text" id="history-search-input" class="form-control" placeholder="ค้นหาเสื้อผ้าที่คุณสนใจ...">
+                        <button class="btn btn-primary" type="button" id="history-search-btn"><i class="bi bi-search"></i></button>
+                    </div>
+                    <hr>
+                    <h5 class="text-muted">ประวัติการค้นหา</h5>
+                    <div id="history-tags-container" class="mb-3"></div>
+                    <div id="image-results-container" class="row g-3"></div>
+                </div>
+            </div>
+
+            <!-- Notifications Page -->
+            <div id="notifications-page">
+                 <div class="page-header text-center p-3"><h4 class="fw-bold m-0">กล่องข้อความ</h4></div>
+                 <div class="bg-white p-5 text-center">
+                    <i class="bi bi-hanger" style="font-size: 5rem; color: #ccc;"></i>
+                    <p class="text-muted mt-3">ยังไม่มีการแจ้งเตือนในตอนนี้!</p>
+                 </div>
+            </div>
+
+            <!-- Profile Page -->
+            <div id="profile-page">
+                <div class="bg-white p-3 pt-4 text-center">
+                    <label for="profile-pic-input">
+                        <img id="profile-pic" src="https://placehold.co/150x150/f0f8ff/5c9ded?text=WEARU" alt="Profile Picture">
+                    </label>
+                    <input type="file" id="profile-pic-input" accept="image/*" class="d-none">
+                    <div class="d-flex justify-content-center align-items-center mt-3 mb-1">
+                        <div id="display-name-container">
+                            <h3 id="display-name" class="m-0"></h3>
+                        </div>
+                        <div id="edit-name-container" class="input-group" style="display: none;">
+                            <input type="text" id="edit-name-input" class="form-control">
+                            <button id="save-name-btn" class="btn btn-success">บันทึก</button>
+                        </div>
+                        <i id="edit-name-btn" class="bi bi-pencil-square fs-5 ms-2" style="cursor: pointer;"></i>
+                    </div>
+                    <p id="profile-email" class="text-muted"></p>
+                </div>
+                <hr class="my-0">
+                <div class="bg-white p-3">
+                    <h5 class="text-center mb-3"><i class="bi bi-heart-fill text-danger"></i> รายการที่ถูกใจ</h5>
+                    <div id="liked-items-container" class="row g-2">
+                        <!-- Liked items will be injected here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <div class="nav-item active" id="nav-home"><i class="bi bi-house-fill"></i><span>Home</span></div>
+            <div class="nav-item" id="nav-search"><i class="bi bi-search"></i><span>Search</span></div>
+            <div class="nav-item" id="nav-notifications"><i class="bi bi-bell-fill"></i><span>Notifications</span></div>
+            <div class="nav-item" id="nav-profile"><i class="bi bi-person-fill"></i><span>Profile</span></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot, collection, addDoc, query, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyCTQeEpl-vbyLXinr7ptX2di6mm-9jxoo8",
+            authDomain: "wearu-4610d.firebaseapp.com",
+            databaseURL: "https://wearu-4610d-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "wearu-4610d",
+            storageBucket: "wearu-4610d.appspot.com",
+            messagingSenderId: "61320692609",
+            appId: "1:61320692609:web:8fb9b1c60af63d483b5e80",
+            measurementId: "G-KWHVTXCCZM"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        // --- DOM Elements ---
+        const landingPage = document.getElementById('landing-page');
+        const startBtn = document.getElementById('start-btn');
+        const authContainer = document.getElementById('auth-container');
+        const appWrapper = document.getElementById('app-wrapper');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const showSignupLink = document.getElementById('show-signup');
+        const showLoginLink = document.getElementById('show-login');
+        const logoutBtn = document.getElementById('logout-btn');
+        const stylistPage = document.getElementById('stylist-page');
+        const searchHistoryPage = document.getElementById('search-history-page');
+        const notificationsPage = document.getElementById('notifications-page');
+        const profilePage = document.getElementById('profile-page');
+        const navHome = document.getElementById('nav-home');
+        const navSearch = document.getElementById('nav-search');
+        const navNotifications = document.getElementById('nav-notifications');
+        const navProfile = document.getElementById('nav-profile');
+
+        // --- PAGE NAVIGATION ---
+        startBtn.addEventListener('click', () => { landingPage.style.display = 'none'; authContainer.style.display = 'flex'; });
+
+        function showPage(pageToShow) {
+            stylistPage.style.display = 'none';
+            searchHistoryPage.style.display = 'none';
+            notificationsPage.style.display = 'none';
+            profilePage.style.display = 'none';
+            navHome.classList.remove('active');
+            navSearch.classList.remove('active');
+            navNotifications.classList.remove('active');
+            navProfile.classList.remove('active');
+
+            if (pageToShow === 'stylist') { stylistPage.style.display = 'block'; navHome.classList.add('active'); } 
+            else if (pageToShow === 'search') { searchHistoryPage.style.display = 'block'; navSearch.classList.add('active'); renderSearchHistory(); }
+            else if (pageToShow === 'notifications') { notificationsPage.style.display = 'block'; navNotifications.classList.add('active'); }
+            else if (pageToShow === 'profile') { profilePage.style.display = 'block'; navProfile.classList.add('active'); }
+        }
+
+        navHome.addEventListener('click', () => showPage('stylist'));
+        navSearch.addEventListener('click', () => showPage('search'));
+        navNotifications.addEventListener('click', () => showPage('notifications'));
+        navProfile.addEventListener('click', () => showPage('profile'));
+
+        // --- AUTHENTICATION & PROFILE DATA ---
+        let currentUser = null;
+        let unsubscribeProfile = null;
+        let unsubscribeLikes = null;
+        let likedItemsCache = [];
+
+        onAuthStateChanged(auth, (user) => {
+            const bgElements = document.querySelectorAll('.fullscreen-bg, .overlay');
+            if (user) {
+                currentUser = user;
+                loadUserProfile(user); 
+                listenToLikes(user);
+                landingPage.style.display = 'none';
+                authContainer.style.display = 'none';
+                appWrapper.style.display = 'block';
+                showPage('stylist');
+                document.getElementById('welcome-message').textContent = `Logged in as: ${user.email}`;
+                bgElements.forEach(el => el.style.display = 'none');
+            } else {
+                currentUser = null;
+                if (unsubscribeProfile) unsubscribeProfile();
+                if (unsubscribeLikes) unsubscribeLikes();
+                landingPage.style.display = 'flex';
+                authContainer.style.display = 'none';
+                appWrapper.style.display = 'none';
+                bgElements.forEach(el => el.style.display = 'block');
+            }
+        });
+
+        function loadUserProfile(user) {
+            const userRef = doc(db, "users", user.uid);
+            unsubscribeProfile = onSnapshot(userRef, async (docSnap) => {
+                if (docSnap.exists()) {
+                    const userData = docSnap.data();
+                    document.getElementById('display-name').textContent = userData.displayName || 'ตั้งชื่อของคุณ';
+                    document.getElementById('profile-pic').src = userData.photoURL || 'https://placehold.co/150x150/f0f8ff/5c9ded?text=WEARU';
+                } else {
+                    const defaultDisplayName = 'ตั้งชื่อของคุณ';
+                    document.getElementById('display-name').textContent = defaultDisplayName;
+                    await setDoc(userRef, { uid: user.uid, email: user.email, displayName: defaultDisplayName, photoURL: null });
+                }
+                document.getElementById('profile-email').textContent = user.email;
+            });
+        }
+        
+        // --- PROFILE PAGE LOGIC ---
+        const editNameBtn = document.getElementById('edit-name-btn');
+        const saveNameBtn = document.getElementById('save-name-btn');
+        const displayNameContainer = document.getElementById('display-name-container');
+        const editNameContainer = document.getElementById('edit-name-container');
+        const displayNameEl = document.getElementById('display-name');
+        const editNameInput = document.getElementById('edit-name-input');
+        const profilePicInput = document.getElementById('profile-pic-input');
+
+        editNameBtn.addEventListener('click', () => {
+            displayNameContainer.style.display = 'none';
+            editNameBtn.style.display = 'none';
+            editNameContainer.style.display = 'flex';
+            editNameInput.value = displayNameEl.textContent;
+            editNameInput.focus();
+        });
+
+        saveNameBtn.addEventListener('click', async () => {
+            if (!currentUser) return;
+            const newName = editNameInput.value.trim();
+            if (newName) {
+                const userRef = doc(db, "users", currentUser.uid);
+                await updateDoc(userRef, { displayName: newName });
+            }
+            displayNameContainer.style.display = 'block';
+            editNameBtn.style.display = 'block';
+            editNameContainer.style.display = 'none';
+        });
+
+        profilePicInput.addEventListener('change', async (e) => {
+            if (!currentUser) return;
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const fileRef = storageRef(storage, `profile_pictures/${currentUser.uid}`);
+            try {
+                await uploadBytes(fileRef, file);
+                const photoURL = await getDownloadURL(fileRef);
+                const userRef = doc(db, "users", currentUser.uid);
+                await updateDoc(userRef, { photoURL: photoURL });
+                alert('อัปเดตรูปโปรไฟล์สำเร็จ!');
+            } catch (error) {
+                console.error("Error uploading file:", error);
+                alert('เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ');
+            }
+        });
+
+        // --- LOGIN/SIGNUP FORMS ---
+        showSignupLink.addEventListener('click', (e) => { e.preventDefault(); loginForm.style.display = 'none'; signupForm.style.display = 'block'; });
+        showLoginLink.addEventListener('click', (e) => { e.preventDefault(); loginForm.style.display = 'block'; signupForm.style.display = 'none'; });
+        document.getElementById('signup-form-fields').addEventListener('submit', (e) => { e.preventDefault(); const email = document.getElementById('signup-email').value; const password = document.getElementById('signup-password').value; createUserWithEmailAndPassword(auth, email, password).then(() => { alert('สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ'); showLoginLink.click(); }).catch(error => alert(`เกิดข้อผิดพลาด: ${error.message}`)); });
+        document.getElementById('login-form-fields').addEventListener('submit', (e) => { e.preventDefault(); const email = document.getElementById('login-email').value; const password = document.getElementById('login-password').value; signInWithEmailAndPassword(auth, email, password).catch(error => alert(`เกิดข้อผิดพลาด: ${error.message}`)); });
+        logoutBtn.addEventListener('click', () => signOut(auth));
+
+        // --- LIKED ITEMS LOGIC ---
+        function listenToLikes(user) {
+            const likesRef = collection(db, "users", user.uid, "likes");
+            unsubscribeLikes = onSnapshot(likesRef, (snapshot) => {
+                likedItemsCache = [];
+                snapshot.forEach((doc) => {
+                    likedItemsCache.push({ id: doc.id, ...doc.data() });
+                });
+                renderLikedItems(likedItemsCache);
+            });
+        }
+
+        function renderLikedItems(items) {
+            const container = document.getElementById('liked-items-container');
+            container.innerHTML = '';
+            if (items.length === 0) {
+                container.innerHTML = '<p class="text-muted text-center col-12">ยังไม่มีรายการที่ถูกใจ</p>';
+                return;
+            }
+            items.forEach(item => {
+                const col = document.createElement('div');
+                col.className = 'col-4';
+                col.innerHTML = `<img src="${item.imageUrl}" class="img-fluid rounded" alt="${item.clothing}" style="width: 100%; height: 120px; object-fit: cover;">`;
+                container.appendChild(col);
+            });
+        }
+        
+        async function toggleLike(likeData) {
+            if (!currentUser) return;
+            const likesRef = collection(db, "users", currentUser.uid, "likes");
+            const q = query(likesRef, where("imageUrl", "==", likeData.imageUrl));
+            const querySnapshot = await getDocs(q);
+
+            if (querySnapshot.empty) {
+                await addDoc(likesRef, likeData);
+            } else {
+                querySnapshot.forEach((doc) => {
+                    deleteDoc(doc.ref);
+                });
+            }
+        }
+
+        // --- SEARCH HISTORY PAGE ---
+        const historySearchInput = document.getElementById('history-search-input');
+        const historySearchBtn = document.getElementById('history-search-btn');
+        
+        function getSearchHistory() { return JSON.parse(localStorage.getItem('wearu_search_history')) || []; }
+        function saveSearchHistory(history) { localStorage.setItem('wearu_search_history', JSON.stringify(history)); }
+        function addToHistory(term) { if (!term) return; let history = getSearchHistory(); history = history.filter(item => item !== term); history.unshift(term); if (history.length > 10) history.pop(); saveSearchHistory(history); }
+        function removeFromHistory(term) { let history = getSearchHistory(); history = history.filter(item => item !== term); saveSearchHistory(history); renderSearchHistory(); }
+        function renderSearchHistory() { const history = getSearchHistory(); const container = document.getElementById('history-tags-container'); container.innerHTML = ''; if (history.length === 0) { container.innerHTML = '<p class="text-muted">ไม่มีประวัติการค้นหา</p>'; return; } history.forEach(term => { const tag = document.createElement('span'); tag.className = 'search-tag'; tag.innerHTML = `${term} <span class="delete-tag" data-term="${term}">&times;</span>`; container.appendChild(tag); }); }
+        
+        function displayImageResults(term) {
+            const container = document.getElementById('image-results-container');
+            container.innerHTML = '<div class="col-12 text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+            
+            setTimeout(() => {
+                container.innerHTML = '';
+                for (let i = 0; i < 9; i++) {
+                    const imageUrl = `https://source.unsplash.com/400x400/?${encodeURIComponent(term)}&sig=${i}`;
+                    const col = document.createElement('div');
+                    col.className = 'col-4';
+                    col.innerHTML = `<img src="${imageUrl}" class="img-fluid rounded shadow-sm" alt="${term}" style="width: 100%; height: 120px; object-fit: cover;" onerror="this.onerror=null;this.src='https://placehold.co/400x400/f7c8e0/333?text=Not+Found';">`;
+                    container.appendChild(col);
+                }
+            }, 500);
+        }
+
+        function performSearch() {
+            const searchTerm = historySearchInput.value.trim();
+            if (!searchTerm) return;
+            addToHistory(searchTerm);
+            renderSearchHistory();
+            displayImageResults(searchTerm);
+        }
+
+        historySearchBtn.addEventListener('click', performSearch);
+        historySearchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { performSearch(); } });
+
+        document.getElementById('history-tags-container').addEventListener('click', (e) => { 
+            if (e.target.classList.contains('delete-tag')) { 
+                removeFromHistory(e.target.dataset.term); 
+            } else if (e.target.classList.contains('search-tag')) { 
+                const term = e.target.textContent.slice(0, -2).trim();
+                historySearchInput.value = term;
+                performSearch();
+            } 
+        });
+
+
+        // --- AI STYLIST ---
+        const stylistForm = document.getElementById('stylist-form');
+        const stylistResult = document.getElementById('stylist-result');
+        const additionalResults = document.getElementById('additional-results');
+        const genderSelect = document.getElementById('user-gender');
+        const shapeSelect = document.getElementById('user-shape');
+        const clothingTypeSelect = document.getElementById('clothing-type');
+        const otherClothingContainer = document.getElementById('other-clothing-container');
+        const otherClothingInput = document.getElementById('other-clothing-input');
+
+        const shapeOptions = {
+            'หญิง': [ { value: 'ลูกแพร์', text: 'หุ่นทรงลูกแพร์' }, { value: 'แอปเปิ้ล', text: 'หุ่นทรงแอปเปิ้ล' }, { value: 'นาฬิกาทราย', text: 'หุ่นทรงนาฬิกาทราย' }, { value: 'สี่เหลี่ยม', text: 'หุ่นทรงสี่เหลี่ยม' } ],
+            'ชาย': [ { value: 'สามเหลี่ยมคว่ำ', text: 'หุ่นทรงสามเหลี่ยมคว่ำ' }, { value: 'สี่เหลี่ยม', text: 'หุ่นทรงสี่เหลี่ยม' }, { value: 'สามเหลี่ยม', text: 'หุ่นทรงสามเหลี่ยม' }, { value: 'วงรี', text: 'หุ่นทรงวงรี' } ]
+        };
+        const clothingDatabase = {
+            'เดรสรัดรูป': { imageUrl: 'https://i.pinimg.com/564x/0a/a3/59/0aa3596503192391472854336c14a48d.jpg', หญิง: {'นาฬิกาทราย': { score: 3, advice: 'สมบูรณ์แบบ! เดรสรัดรูปถูกสร้างมาเพื่อเน้นส่วนโค้งเว้าที่สวยงามของคุณโดยเฉพาะ' },'ลูกแพร์': { score: 1, advice: 'จะเน้นสะโพกให้เด่นชัดขึ้น อาจทำให้หุ่นไม่สมดุล ลองเลือกเดรสที่ช่วงบนมีดีเทลจะดีกว่า' },'แอปเปิ้ล': { score: 0, advice: 'ควรหลีกเลี่ยง เพราะจะเน้นช่วงลำตัวและหน้าท้อง' },'สี่เหลี่ยม': { score: 1, advice: 'จะยิ่งเน้นให้หุ่นดูตรงมากขึ้น ลองใช้เข็มขัดช่วยสร้างส่วนโค้งเว้า' }},ชาย: null},
+            'กระโปรงทรงเอ': { imageUrl: 'https://i.pinimg.com/564x/87/4c/2f/874c2f41e2f0ce586f1b7432c6e7f128.jpg', หญิง: {'ลูกแพร์': { score: 3, advice: 'นี่คือทรงกระโปรงที่เกิดมาเพื่อคุณ! ช่วยพรางสะโพกและต้นขาได้ดีเยี่ยม' },'แอปเปิ้ล': { score: 3, advice: 'เป็นตัวเลือกที่ดีมาก! ช่วยสร้างสมดุลและไม่เน้นช่วงท้อง' },'สี่เหลี่ยม': { score: 3, advice: 'ฉลาดมาก! ช่วยเพิ่มความกว้างให้ช่วงล่าง ทำให้เอวดูเล็กลง' },'นาฬิกาทราย': { score: 2, advice: 'ใส่ได้เสมอ แต่กระโปรงทรงดินสอจะเน้นสัดส่วนของคุณได้ดีกว่า' }},ชาย: null},
+            'เสื้อเปิดไหล่': { imageUrl: 'https://i.pinimg.com/564x/31/53/56/3153569e597148011237a935472145a3.jpg', หญิง: {'ลูกแพร์': { score: 3, advice: 'ยอดเยี่ยม! ช่วยดึงดูดสายตาไปที่ช่วงบน ทำให้รูปร่างดูสมดุล' },'สี่เหลี่ยม': { score: 3, advice: 'ดีมาก! การเพิ่มความกว้างให้ไหล่ จะทำให้เอวดูคอดลง' },'แอปเปิ้ล': { score: 2, advice: 'ช่วยดึงความสนใจไปที่ช่วงบนได้ดี แต่ควรเลือกทรงที่ไม่รัดรูป' },'นาฬิกาทราย': { score: 2, advice: 'ใส่ได้สวยงาม เพราะหุ่นของคุณสมดุลอยู่แล้ว' }},ชาย: null},
+            'เสื้อยืด': { imageUrl: 'https://i.pinimg.com/564x/e3/32/3a/e3323a610e7851b4a339f443a854030a.jpg', หญิง: {'นาฬิกาทราย':{score:3, advice:'เสื้อยืดพอดีตัวเข้ากับหุ่นของคุณได้ดี'},'ลูกแพร์':{score:2, advice:'เลือกเสื้อยืดสีสว่างหรือมีลายเพื่อดึงดูดสายตาไปที่ช่วงบน'},'แอปเปิ้ล':{score:1, advice:'เลือกทรงที่ไม่รัดรูปและยาวคลุมสะโพกจะช่วยพรางหน้าท้อง'},'สี่เหลี่ยม':{score:2, advice:'ใส่ได้ทุกแบบ ลองแบบมีดีเทลที่คอหรือไหล่เพื่อสร้างมิติ'}},ชาย: {'สามเหลี่ยมคว่ำ': { score: 3, advice: 'เสื้อยืดพอดีตัวจะช่วยโชว์สัดส่วนไหล่ที่สวยงามของคุณ' },'สี่เหลี่ยม': { score: 2, advice: 'เลือกเสื้อยืดที่มีลายกราฟิกหรือลายขวางเพื่อเพิ่มความกว้างให้ลำตัว' },'สามเหลี่ยม': { score: 1, advice: 'หลีกเลี่ยงเสื้อที่รัดรูปเกินไป ลองเลือกทรงตรงจะช่วยพรางช่วงเอวได้ดีกว่า' },'วงรี': { score: 1, advice: 'เลือกเสื้อยืดสีเข้มและทรงปล่อย จะช่วยพรางรูปร่างได้ดี' }}},
+            'เสื้อเชิ้ต': { imageUrl: 'https://i.pinimg.com/564x/01/9a/32/019a3258f31085022930da08652f438f.jpg', หญิง: {'นาฬิกาทราย':{score:3, advice:'เสื้อเชิ้ตเข้ารูปจะเน้นสัดส่วนคุณได้ดี'},'ลูกแพร์':{score:3, advice:'เหมาะมาก โดยเฉพาะแบบที่มีดีเทลที่ไหล่หรือปกเสื้อ'},'แอปเปิ้ล':{score:2, advice:'เลือกทรงปล่อยที่ไม่รัดหน้าท้อง และอาจใส่เป็นเสื้อคลุม'},'สี่เหลี่ยม':{score:2, advice:'เลือกทรงที่มีกระเป๋าหน้าอกหรือดีเทลอื่นๆ เพื่อเพิ่มวอลลุ่ม'}},ชาย: {'สามเหลี่ยมคว่ำ': { score: 2, advice: 'เสื้อเชิ้ตทรง Slim Fit จะดูดีมาก แต่ถ้าไหล่กว้างมากอาจต้องเลือกไซส์ใหญ่ขึ้น' },'สี่เหลี่ยม': { score: 3, advice: 'ใส่ได้แทบทุกทรง โดยเฉพาะทรงพอดีตัว (Regular Fit) จะดูสมส่วน' },'สามเหลี่ยม': { score: 3, advice: 'เสื้อเชิ้ตทรงตรง (Straight Fit) จะช่วยสร้างสมดุลระหว่างช่วงบนและช่วงล่างได้ดี' },'วงรี': { score: 2, advice: 'เลือกเสื้อเชิ้ตลายทางแนวตั้งจะช่วยให้ดูเพรียวขึ้น และไม่ควรใส่รัดรูปเกินไป' }}},
+            'เสื้อโปโล': { imageUrl: 'https://i.pinimg.com/564x/a9/7c/41/a97c412e623188b0a15b364177582356.jpg', หญิง: null,ชาย: {'สามเหลี่ยมคว่ำ': { score: 3, advice: 'เหมาะมาก! ช่วยเน้นช่วงไหล่และอกที่สวยงามของคุณ' },'สี่เหลี่ยม': { score: 3, advice: 'เป็นทรงคลาสสิกที่เข้ากับรูปร่างของคุณได้ดีมาก' },'สามเหลี่ยม': { score: 2, advice: 'เลือกทรงที่พอดีตัว ไม่รัดแน่นจนเกินไป จะช่วยให้ดูสมาร์ทขึ้น' },'วงรี': { score: 1, advice: 'ควรเลือกสีเข้มและเนื้อผ้าไม่หนาจนเกินไปเพื่อช่วยพรางรูปร่าง' }}},
+            'กางเกงยีนส์': { imageUrl: 'https://i.pinimg.com/564x/05/e2/51/05e251b3c9a67e78a7097858a13a3782.jpg', หญิง: {'นาฬิกาทราย':{score:3, advice:'กางเกงยีนส์เอวสูงทรงขาเดฟหรือขาม้าจะสวยมาก'},'ลูกแพร์':{score:3, advice:'ทรงขากระบอกหรือทรงบูทคัทจะช่วยสร้างสมดุลให้สะโพก'},'แอปเปิ้ล':{score:2, advice:'เลือกทรงขาตรง (Straight) หรือทรงสกินนี่เพื่อโชว์เรียวขา'},'สี่เหลี่ยม':{score:3, advice:'คุณสามารถใส่ได้ทุกทรง ลองทรงสกินนี่หรือทรงบอยเฟรนด์ได้เลย'}},ชาย: {'สามเหลี่ยมคว่ำ': { score: 2, advice: 'กางเกงยีนส์ทรงกระบอก (Straight) หรือทรงขากว้างเล็กน้อย (Relaxed Fit) จะช่วยสร้างสมดุลกับช่วงบนที่กว้าง' },'สี่เหลี่ยม': { score: 3, advice: 'คุณสามารถใส่ได้แทบทุกทรง ตั้งแต่ทรงตรง (Straight) ไปจนถึงทรงสลิม (Slim Fit)' },'สามเหลี่ยม': { score: 3, advice: 'กางเกงยีนส์ทรงกระบอก (Straight) เป็นตัวเลือกที่ดีที่สุด เพราะจะไม่เน้นช่วงสะโพกและเอว' },'วงรี': { score: 2, advice: 'เลือกทรงกระบอก (Straight) หรือทรงขากว้าง (Relaxed Fit) ที่เอวพอดี จะช่วยให้ใส่สบายและดูดี' }}},
+            'กางเกงชิโน่': { imageUrl: 'https://i.pinimg.com/564x/cf/f8/51/cff851233e79435a4ac305a4157147b3.jpg', หญิง: null,ชาย: {'สามเหลี่ยมคว่ำ': { score: 3, advice: 'กางเกงชิโน่ทรงตรง (Straight Fit) จะช่วยสร้างสมดุลให้รูปร่างได้ดีมาก' },'สี่เหลี่ยม': { score: 3, advice: 'เป็นตัวเลือกที่ยอดเยี่ยม เข้ากับรูปร่างของคุณได้ดีในทุกทรง' },'สามเหลี่ยม': { score: 2, advice: 'เลือกทรงกระบอกจะดีกว่าทรงสลิม เพื่อไม่ให้เน้นช่วงสะโพกมากเกินไป' },'วงรี': { score: 2, advice: 'เลือกทรงคลาสสิก (Classic Fit) ที่ไม่รัดแน่น จะช่วยให้ดูสมส่วนและสุภาพ' }}}
+        };
+
+        genderSelect.addEventListener('change', (e) => { const selectedGender = e.target.value; const options = shapeOptions[selectedGender] || []; shapeSelect.innerHTML = '<option selected disabled value="">-- เลือกรูปร่าง --</option>'; options.forEach(option => { const opt = document.createElement('option'); opt.value = option.value; opt.textContent = option.text; shapeSelect.appendChild(opt); }); });
+        clothingTypeSelect.addEventListener('change', (e) => { if (e.target.value === 'อื่นๆ') { otherClothingContainer.style.display = 'block'; otherClothingInput.required = true; } else { otherClothingContainer.style.display = 'none'; otherClothingInput.required = false; } });
+        
+        stylistResult.addEventListener('click', (e) => {
+            if (e.target.closest('.like-btn')) {
+                const button = e.target.closest('.like-btn');
+                const likeData = JSON.parse(button.dataset.like);
+                toggleLike(likeData);
+                button.querySelector('i').classList.toggle('bi-heart');
+                button.querySelector('i').classList.toggle('bi-heart-fill');
+                button.classList.toggle('text-danger');
+            }
+        });
+        
+        additionalResults.addEventListener('click', (e) => {
+            if (e.target.closest('.like-btn')) {
+                const button = e.target.closest('.like-btn');
+                const likeData = JSON.parse(button.dataset.like);
+                toggleLike(likeData);
+                button.querySelector('i').classList.toggle('bi-heart');
+                button.querySelector('i').classList.toggle('bi-heart-fill');
+                button.classList.toggle('text-danger');
+            }
+        });
+
+        function displayAdditionalRecommendations(gender, shape, currentClothing) {
+            additionalResults.innerHTML = '';
+            const allClothing = Object.keys(clothingDatabase);
+            const recommendations = allClothing
+                .filter(item => item !== currentClothing && clothingDatabase[item][gender])
+                .map(item => ({ name: item, ...clothingDatabase[item][gender][shape], imageUrl: clothingDatabase[item].imageUrl }))
+                .filter(item => item.score >= 2)
+                .sort(() => 0.5 - Math.random())
+                .slice(0, 2);
+
+            if (recommendations.length > 0) {
+                let html = '<hr><h5 class="mb-3">ไอเดียเพิ่มเติมสำหรับคุณ</h5><div class="row g-3">';
+                recommendations.forEach(item => {
+                    const likeData = JSON.stringify({ clothing: item.name, imageUrl: item.imageUrl, advice: item.advice });
+                    const isLiked = likedItemsCache.some(likedItem => likedItem.imageUrl === item.imageUrl);
+                    const heartIcon = isLiked ? 'bi-heart-fill' : 'bi-heart';
+                    const heartColor = isLiked ? 'text-danger' : '';
+                    html += `
+                        <div class="col-6">
+                            <div class="card position-relative">
+                                <img src="${item.imageUrl}" class="card-img-top" style="height: 150px; object-fit: cover;">
+                                <div class="card-body p-2">
+                                    <h6 class="card-title mb-0">${item.name}</h6>
+                                </div>
+                                <button class="btn like-btn position-absolute top-0 end-0 m-1 p-0 ${heartColor}" data-like='${likeData}'>
+                                    <i class="bi ${heartIcon} fs-5"></i>
+                                </button>
+                            </div>
+                        </div>`;
+                });
+                html += '</div>';
+                additionalResults.innerHTML = html;
+            }
+        }
+
+        stylistForm.addEventListener('submit', async (e) => { 
+            e.preventDefault(); 
+            const shape = document.getElementById('user-shape').value; 
+            const gender = document.getElementById('user-gender').value; 
+            let clothing = clothingTypeSelect.value; 
+            let searchTerm = clothing; 
+            if (clothing === 'อื่นๆ') { 
+                const otherClothingValue = otherClothingInput.value.trim(); 
+                if (!otherClothingValue) { alert('กรุณาระบุประเภทเสื้อผ้าที่คุณสนใจ'); return; } 
+                clothing = otherClothingValue; 
+                searchTerm = otherClothingValue; 
+            } 
+            
+            let isLiked = likedItemsCache.some(item => item.clothing === clothing);
+
+            if (clothing === otherClothingInput.value.trim()) { 
+                let genericAdvice = `สำหรับ<strong>${gender}</strong>ที่มีรูปร่างแบบ <strong>${shape}</strong>, การเลือกใส่ <strong>${clothing}</strong> สามารถทำได้โดยมีหลักการดังนี้: `; 
+                switch(shape) { 
+                    case 'ลูกแพร์': case 'สามเหลี่ยม': genericAdvice += 'ลองเน้นดีเทลที่ช่วงบนเพื่อสร้างสมดุลให้กับสะโพก'; break; 
+                    case 'แอปเปิ้ล': case 'วงรี': genericAdvice += 'ควรเลือกทรงที่ไม่รัดช่วงลำตัวจนเกินไป เพื่อพรางหน้าท้อง'; break; 
+                    case 'นาฬิกาทราย': genericAdvice += 'เลือกแบบที่เน้นเอว จะช่วยขับให้สัดส่วนดูสวยงามยิ่งขึ้น'; break; 
+                    case 'สี่เหลี่ยม': case 'สามเหลี่ยมคว่ำ': genericAdvice += 'คุณมีรูปร่างที่สมส่วน สามารถเลือกใส่ได้หลากหลายสไตล์'; break; 
+                } 
+                const imageUrl = `https://source.unsplash.com/400x400/?${encodeURIComponent(clothing)}`; 
+                const likeData = JSON.stringify({ clothing, imageUrl, advice: genericAdvice }); 
+                const heartIcon = isLiked ? 'bi-heart-fill' : 'bi-heart';
+                const heartColor = isLiked ? 'text-danger' : '';
+                stylistResult.innerHTML = `<div class="card mt-3"><div class="row g-0"><div class="col-md-4"><img src="${imageUrl}" class="img-fluid rounded-start" alt="${clothing}" style="width:100%; height: 100%; object-fit: cover;"></div><div class="col-md-8"><div class="card-body text-start position-relative"><h5 class="card-title">ผลการวิเคราะห์สำหรับ "${clothing}"</h5><p class="card-text"><span class="badge bg-info">คำแนะนำทั่วไป</span></p><p class="card-text">${genericAdvice}</p><button class="btn like-btn position-absolute top-0 end-0 m-2 ${heartColor}" data-like='${likeData}'><i class="bi ${heartIcon} fs-4"></i></button></div></div></div></div>`; 
+            } else { 
+                const clothingData = clothingDatabase[clothing]; 
+                if (!clothingData || !clothingData[gender]) { 
+                    stylistResult.innerHTML = `<div class="alert alert-warning">ขออภัย, เสื้อผ้าประเภทนี้ไม่เหมาะกับเพศที่คุณเลือก</div>`; 
+                } else { 
+                    const result = clothingData[gender][shape]; 
+                    if (!result) { 
+                        stylistResult.innerHTML = `<div class="alert alert-info">เรายังไม่มีข้อมูลสำหรับเสื้อผ้าชิ้นนี้กับรูปร่างของคุณ</div>`; 
+                    } else { 
+                        isLiked = likedItemsCache.some(item => item.imageUrl === clothingData.imageUrl);
+                        const scoreMap = {3: { text: 'เหมาะสมมาก', class: 'bg-success' }, 2: { text: 'เหมาะสม', class: 'bg-info' }, 1: { text: 'พอใช้', class: 'bg-warning text-dark' }, 0: { text: 'ควรพิจารณา', class: 'bg-danger' }}; 
+                        const scoreInfo = scoreMap[result.score]; 
+                        const likeData = JSON.stringify({ clothing, imageUrl: clothingData.imageUrl, advice: result.advice }); 
+                        const heartIcon = isLiked ? 'bi-heart-fill' : 'bi-heart';
+                        const heartColor = isLiked ? 'text-danger' : '';
+                        stylistResult.innerHTML = `<div class="card mt-3"><div class="row g-0"><div class="col-md-4"><img src="${clothingData.imageUrl}" class="img-fluid rounded-start" alt="${clothing}" style="width:100%; height: 100%; object-fit: cover;"></div><div class="col-md-8"><div class="card-body text-start position-relative"><h5 class="card-title">ผลการวิเคราะห์</h5><p class="card-text"><strong>เสื้อผ้า:</strong> ${clothing} <br><strong>กับรูปร่างของคุณ (${shape}, ${gender}):</strong> <span class="badge ${scoreInfo.class}">${scoreInfo.text}</span></p><p class="card-text">${result.advice}</p><button class="btn like-btn position-absolute top-0 end-0 m-2 ${heartColor}" data-like='${likeData}'><i class="bi ${heartIcon} fs-4"></i></button></div></div></div></div>`; 
+                    } 
+                } 
+            } 
+            stylistResult.style.display = 'block'; 
+            displayAdditionalRecommendations(gender, shape, clothing);
+        });
+    </script>
+</body>
+</html>
